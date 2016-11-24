@@ -2,7 +2,7 @@
     "name": "fontsize-shortcuts",
     "displayName": "FontSize Shortcuts",
     "description": "Change the font size with keyboard shortcuts",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "publisher": "peterjuras",
     "engines": {
         "vscode": "^1.6.0"
@@ -30,32 +30,50 @@
     "main": "./out/src/extension",
     "license": "SEE LICENSE IN LICENSE",
     "contributes": {
-        "commands": [{
-            "command": "fontshortcuts.increaseFontSize",
-            "title": "Increase font size"
-        }, {
-            "command": "fontshortcuts.decreaseFontSize",
-            "title": "Decrease font size"
-        }, {
-            "command": "fontshortcuts.resetFontSize",
-            "title": "Reset font size"
-        }],
-        "keybindings": [{
-            "command": "fontshortcuts.increaseFontSize",
-            "key": "ctrl+=",
-            "mac": "cmd+=",
-            "when": "editorFocus"
-        }, {
-            "command": "fontshortcuts.decreaseFontSize",
-            "key": "ctrl+-",
-            "mac": "cmd+-",
-            "when": "editorFocus"
-        }, {
-            "command": "fontshortcuts.resetFontSize",
-            "key": "ctrl+0",
-            "mac": "cmd+0",
-            "when": "editorFocus"
-        }]
+        "commands": [
+            {
+                "command": "fontshortcuts.increaseFontSize",
+                "title": "Increase font size"
+            },
+            {
+                "command": "fontshortcuts.decreaseFontSize",
+                "title": "Decrease font size"
+            },
+            {
+                "command": "fontshortcuts.resetFontSize",
+                "title": "Reset font size"
+            }
+        ],
+        "configuration": {
+            "title": "FontSize Shortcuts Configuration",
+            "properties": {
+                "fontshortcuts.defaultFontSize": {
+                    "type": ["integer", "null"],
+                    "description": "The default font size that is used on a font size reset",
+                    "default": null
+                }
+            }
+        },
+        "keybindings": [
+            {
+                "command": "fontshortcuts.increaseFontSize",
+                "key": "ctrl+=",
+                "mac": "cmd+=",
+                "when": "editorFocus"
+            },
+            {
+                "command": "fontshortcuts.decreaseFontSize",
+                "key": "ctrl+-",
+                "mac": "cmd+-",
+                "when": "editorFocus"
+            },
+            {
+                "command": "fontshortcuts.resetFontSize",
+                "key": "ctrl+0",
+                "mac": "cmd+0",
+                "when": "editorFocus"
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "tsc -p ./",

@@ -12,11 +12,23 @@ You can use the following shortcuts to adjust the font size:
 - Decrease font size: `Ctrl/Cmd` and `-`
 - Reset font size to default: `Ctrl/Cmd` and `0`
 
+You can configure the default font size for the reset with the **fontshortcuts.defaultFontSize** setting:
+
+```json
+{
+  "fontshortcuts.defaultFontSize": 15
+}
+```
+
 ## Requirements
 
 Visual Studio Code 1.6 or higher
 
 ## Release Notes
+
+#### 1.1.0
+
+- Added `fontshortcuts.defaultFontSize` setting to configure the font size set on a reset.
 
 ### 1.0.0
 
