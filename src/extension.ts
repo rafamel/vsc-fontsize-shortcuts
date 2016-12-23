@@ -13,6 +13,7 @@ export function activate(context: ExtensionContext) {
         const fontSize = config.get<number>('editor.fontSize');
         const newSize = Math.min(maxFontSize, fontSize + 1);
         if (newSize !== fontSize) {
+            config.update('terminal.integrated.fontSize', newSize, true);
             return config.update('editor.fontSize', newSize, true);
         }
     });
@@ -21,6 +22,7 @@ export function activate(context: ExtensionContext) {
         const fontSize = config.get<number>('editor.fontSize');
         const newSize = Math.max(minFontSize, fontSize - 1);
         if (newSize !== fontSize) {
+            config.update('terminal.integrated.fontSize', newSize, true);
             return config.update('editor.fontSize', newSize, true);
         }
     });
@@ -35,6 +37,7 @@ export function activate(context: ExtensionContext) {
                 && defaultFontSize >= minFontSize
                 && defaultFontSize <= maxFontSize
             ) {
+                workspace.getConfiguration().update('terminal.integrated.fontSize', defaultFontSize, true);
                 return workspace.getConfiguration().update('editor.fontSize', defaultFontSize, true);
             } else {
                 // TODO: Display error notification
@@ -42,6 +45,7 @@ export function activate(context: ExtensionContext) {
             }
         } else {
             // No override is set, remove the fontSize setting to let VSCode set the default font size
+            workspace.getConfiguration().update('terminal.integrated.fontSize', undefined, true)
             return workspace.getConfiguration().update('editor.fontSize', undefined, true)
                 // Swallow exceptions if fontSize has already been reset
                 .then(() => { }, () => { });
