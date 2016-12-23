@@ -26,29 +26,35 @@ export function activate(context: ExtensionContext) {
             return config.update('editor.fontSize', newSize, true);
         }
     });
-    const resetSizeCommand = commands.registerCommand('fontshortcuts.resetFontSize', () => {
+    const resetSizeCommand = commands.registerCommand('fontshortcuts.resetFontSize', async () => {
         // Check whether an override for the default font size exists
         const defaultFontSize = workspace.getConfiguration("fontshortcuts").get('defaultFontSize') as number;
         console.log(defaultFontSize);
         if (defaultFontSize) {
             // Check whether the setting is a valid value
-            // TODO Continue
             if (Number.isSafeInteger(defaultFontSize)
                 && defaultFontSize >= minFontSize
                 && defaultFontSize <= maxFontSize
             ) {
-                workspace.getConfiguration().update('terminal.integrated.fontSize', defaultFontSize, true);
-                return workspace.getConfiguration().update('editor.fontSize', defaultFontSize, true);
+                try {
+                    await workspace.getConfiguration().update('terminal.integrated.fontSize', defaultFontSize, true)
+                    return workspace.getConfiguration().update('editor.fontSize', defaultFontSize, true);
+                } catch (exception) {
+                    return false;
+                }
             } else {
-                // TODO: Display error notification
                 window.showErrorMessage(`Cannot set default font size to "${defaultFontSize}". Please set it to an integer between ${minFontSize} and ${maxFontSize} in your user settings.`);
             }
         } else {
             // No override is set, remove the fontSize setting to let VSCode set the default font size
-            workspace.getConfiguration().update('terminal.integrated.fontSize', undefined, true)
-            return workspace.getConfiguration().update('editor.fontSize', undefined, true)
-                // Swallow exceptions if fontSize has already been reset
-                .then(() => { }, () => { });
+            try {
+                await workspace.getConfiguration().update('terminal.integrated.fontSize', undefined, true);
+                return workspace.getConfiguration().update('editor.fontSize', undefined, true)
+                    // Swallow exceptions if fontSize has already been reset
+                    .then(() => { }, () => { });
+            } catch (exception) {
+                return false;
+            }
         }
     });
 
