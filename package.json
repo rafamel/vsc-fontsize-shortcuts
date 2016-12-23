@@ -2,7 +2,7 @@
     "name": "fontsize-shortcuts",
     "displayName": "FontSize Shortcuts",
     "description": "Change the font size with keyboard shortcuts",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "publisher": "peterjuras",
     "engines": {
         "vscode": "^1.6.0"

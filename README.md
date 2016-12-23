@@ -26,6 +26,10 @@ Visual Studio Code 1.6 or higher
 
 ## Release Notes
 
+#### 1.2.0
+
+- The integrated terminal font size is now adjusted as well.
+
 #### 1.1.0
 
 - Added `fontshortcuts.defaultFontSize` setting to configure the font size set on a reset.
