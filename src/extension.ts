@@ -11,7 +11,8 @@ export function activate(context: ExtensionContext) {
     const increaseSizeCommand = commands.registerCommand('fontshortcuts.increaseFontSize', () => {
         const config = workspace.getConfiguration();
         const fontSize = config.get<number>('editor.fontSize');
-        const newSize = Math.min(maxFontSize, fontSize + 1);
+        const step = config.get<number>('fontshortcuts.step');
+        const newSize = Math.min(maxFontSize, fontSize + step);
         if (newSize !== fontSize) {
             config.update('terminal.integrated.fontSize', newSize, true);
             return config.update('editor.fontSize', newSize, true);
@@ -20,7 +21,8 @@ export function activate(context: ExtensionContext) {
     const decreaseSizeCommand = commands.registerCommand('fontshortcuts.decreaseFontSize', () => {
         const config = workspace.getConfiguration();
         const fontSize = config.get<number>('editor.fontSize');
-        const newSize = Math.max(minFontSize, fontSize - 1);
+        const step = config.get<number>('fontshortcuts.step');
+        const newSize = Math.max(minFontSize, fontSize - step);
         if (newSize !== fontSize) {
             config.update('terminal.integrated.fontSize', newSize, true);
             return config.update('editor.fontSize', newSize, true);
