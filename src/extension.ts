@@ -17,15 +17,46 @@ export function activate(context: ExtensionContext) {
         const config = workspace.getConfiguration(),
             step = config.get<number>('fontshortcuts.step'),
             fontSize = config.get<number>('editor.fontSize'),
-            termFontSize = config.get<number>('editor.fontSize'),
+            termFontSize = config.get<number>('terminal.integrated.fontSize'),
             newSize = sumFontSize(fontSize, step),
             newTermSize = sumFontSize(termFontSize, step);
+
         if (newSize !== fontSize) {
             config.update('editor.fontSize', newSize, true);
         }
         if (newTermSize !== termFontSize) {
             config.update('terminal.integrated.fontSize', newTermSize, true);
         }
+    }
+
+    const reset = (internal: string, external: string) => {
+        // Check whether an override for the default font size exists
+        let defaultFontSize = workspace.getConfiguration("fontshortcuts").get(internal) as number;
+        if (defaultFontSize) {
+            // Check whether the setting is a valid value
+            if (defaultFontSize >= minFontSize
+                && defaultFontSize <= maxFontSize
+            ) {
+                defaultFontSize = Math.round(defaultFontSize * 10) / 10;
+                try {
+                    return workspace.getConfiguration().update(external, defaultFontSize, true);
+                } catch (err) {
+                    window.showErrorMessage(`Couldn't change font size: ${err}`);
+                }
+            } else {
+                window.showErrorMessage(`Cannot set default font size to "${defaultFontSize}". Please set it to an integer between ${minFontSize} and ${maxFontSize} in your user settings.`);
+            }
+        } else {
+            // No override is set, remove the fontSize setting to let VSCode set the default font size
+            try {
+                return workspace.getConfiguration().update(external, undefined, true)
+                    // Swallow exceptions if fontSize has already been reset
+                    .then(() => { }, () => { });
+            } catch (exception) {
+                return false;
+            }
+        }
+
     }
     const increaseSizeCommand = commands.registerCommand('fontshortcuts.increaseFontSize', () => {
         increaseDecrease(true);
@@ -34,34 +65,8 @@ export function activate(context: ExtensionContext) {
         increaseDecrease(false);
     });
     const resetSizeCommand = commands.registerCommand('fontshortcuts.resetFontSize', async () => {
-        // Check whether an override for the default font size exists
-        let defaultFontSize = workspace.getConfiguration("fontshortcuts").get('defaultFontSize') as number;
-        if (defaultFontSize) {
-            // Check whether the setting is a valid value
-            if (defaultFontSize >= minFontSize
-                && defaultFontSize <= maxFontSize
-            ) {
-                defaultFontSize = Math.round(defaultFontSize * 10) / 10;
-                try {
-                    await workspace.getConfiguration().update('terminal.integrated.fontSize', defaultFontSize, true)
-                    return workspace.getConfiguration().update('editor.fontSize', defaultFontSize, true);
-                } catch (exception) {
-                    return false;
-                }
-            } else {
-                window.showErrorMessage(`Cannot set default font size to "${defaultFontSize}". Please set it to an integer between ${minFontSize} and ${maxFontSize} in your user settings.`);
-            }
-        } else {
-            // No override is set, remove the fontSize setting to let VSCode set the default font size
-            try {
-                await workspace.getConfiguration().update('terminal.integrated.fontSize', undefined, true);
-                return workspace.getConfiguration().update('editor.fontSize', undefined, true)
-                    // Swallow exceptions if fontSize has already been reset
-                    .then(() => { }, () => { });
-            } catch (exception) {
-                return false;
-            }
-        }
+        reset('defaultFontSize', 'editor.fontSize');
+        reset('defaultTerminalFontSize', 'terminal.integrated.fontSize');
     });
 
     context.subscriptions.push(increaseSizeCommand, decreaseSizeCommand, resetSizeCommand);
