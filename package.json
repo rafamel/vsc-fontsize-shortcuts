@@ -60,6 +60,11 @@
           "type": "number",
           "description": "The increment or decrement step for a font size change",
           "default": 1
+        },
+        "fontshortcuts.resizeTerminal": {
+          "type": "boolean",
+          "description": "Controls whether the Terminal font gets resized with the editor",
+          "default": false
         }
       }
     },

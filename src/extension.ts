@@ -17,15 +17,17 @@ export function activate(context: ExtensionContext) {
         const config = workspace.getConfiguration(),
             step = config.get<number>('fontshortcuts.step'),
             fontSize = config.get<number>('editor.fontSize'),
-            termFontSize = config.get<number>('terminal.integrated.fontSize'),
-            newSize = sumFontSize(fontSize, step),
-            newTermSize = sumFontSize(termFontSize, step);
-
+            resizeTerminal = config.get<boolean>('fontshortcuts.resizeTerminal'),
+            newSize = sumFontSize(fontSize, step);
         if (newSize !== fontSize) {
             config.update('editor.fontSize', newSize, true);
         }
-        if (newTermSize !== termFontSize) {
-            config.update('terminal.integrated.fontSize', newTermSize, true);
+        if (resizeTerminal) {
+            const termFontSize = config.get<number>('terminal.integrated.fontSize'),
+                newTermSize = sumFontSize(termFontSize, step);
+            if (newTermSize !== termFontSize) {
+                config.update('terminal.integrated.fontSize', newTermSize, true);
+            }
         }
     }
 
@@ -66,7 +68,8 @@ export function activate(context: ExtensionContext) {
     });
     const resetSizeCommand = commands.registerCommand('fontshortcuts.resetFontSize', async () => {
         reset('defaultFontSize', 'editor.fontSize');
-        reset('defaultTerminalFontSize', 'terminal.integrated.fontSize');
+        const resizeTerminal = workspace.getConfiguration("fontshortcuts").get('resizeTerminal') as boolean;
+        if (resizeTerminal) reset('defaultTerminalFontSize', 'terminal.integrated.fontSize');
     });
 
     context.subscriptions.push(increaseSizeCommand, decreaseSizeCommand, resetSizeCommand);
