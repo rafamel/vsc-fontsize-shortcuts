@@ -31,7 +31,7 @@ export function activate(context: ExtensionContext) {
         }
     }
 
-    const reset = (internal: string, external: string) => {
+    const reset = (internal: string, external: string): Promise<any> => {
         // Check whether an override for the default font size exists
         let defaultFontSize = workspace.getConfiguration("fontshortcuts").get(internal) as number;
         if (defaultFontSize) {
@@ -41,35 +41,40 @@ export function activate(context: ExtensionContext) {
             ) {
                 defaultFontSize = Math.round(defaultFontSize * 10) / 10;
                 try {
-                    return workspace.getConfiguration().update(external, defaultFontSize, true);
-                } catch (err) {
-                    window.showErrorMessage(`Couldn't change font size: ${err}`);
-                }
+                    return Promise.resolve(workspace.getConfiguration().update(external, defaultFontSize, true));
+                } catch (err) { return Promise.reject(`Couldn't change font size: ${err}`); }
             } else {
-                window.showErrorMessage(`Cannot set default font size to "${defaultFontSize}". Please set it to an integer between ${minFontSize} and ${maxFontSize} in your user settings.`);
+                return Promise.reject(`Cannot set default font size to "${defaultFontSize}". Please set it to an integer between ${minFontSize} and ${maxFontSize} in your user settings.`);
             }
         } else {
             // No override is set, remove the fontSize setting to let VSCode set the default font size
             try {
-                return workspace.getConfiguration().update(external, undefined, true)
-                    // Swallow exceptions if fontSize has already been reset
-                    .then(() => { }, () => { });
-            } catch (exception) {
-                return false;
+                return Promise.resolve(workspace.getConfiguration().update(external, undefined, true));
+            } catch (err) {
+                return Promise.reject(`Couldn't reset font size: ${err}`);
             }
         }
 
     }
+
     const increaseSizeCommand = commands.registerCommand('fontshortcuts.increaseFontSize', () => {
         increaseDecrease(true);
     });
     const decreaseSizeCommand = commands.registerCommand('fontshortcuts.decreaseFontSize', () => {
         increaseDecrease(false);
     });
+
     const resetSizeCommand = commands.registerCommand('fontshortcuts.resetFontSize', async () => {
-        reset('defaultFontSize', 'editor.fontSize');
+        let promises = [reset('defaultFontSize', 'editor.fontSize')];
+
         const resizeTerminal = workspace.getConfiguration("fontshortcuts").get('resizeTerminal') as boolean;
-        if (resizeTerminal) reset('defaultTerminalFontSize', 'terminal.integrated.fontSize');
+        if (resizeTerminal) {
+            promises.push(reset('defaultTerminalFontSize', 'terminal.integrated.fontSize'));
+        }
+
+        return Promise
+            .all(promises)
+            .catch((err) => window.showErrorMessage(err));
     });
 
     context.subscriptions.push(increaseSizeCommand, decreaseSizeCommand, resetSizeCommand);
