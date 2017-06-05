@@ -8,36 +8,40 @@ const minFontSize = 1;
 const maxFontSize = 100;
 
 export function activate(context: ExtensionContext) {
-    const increaseSizeCommand = commands.registerCommand('fontshortcuts.increaseFontSize', () => {
-        const config = workspace.getConfiguration();
-        const fontSize = config.get<number>('editor.fontSize');
-        const step = config.get<number>('fontshortcuts.step');
-        const newSize = Math.min(maxFontSize, fontSize + step);
-        if (newSize !== fontSize) {
-            config.update('terminal.integrated.fontSize', newSize, true);
-            return config.update('editor.fontSize', newSize, true);
+
+    const increaseDecrease = (increase: boolean) => {
+        const sumFontSize = (current: number, step: number) => {
+            let newSize = (increase) ? Math.min(maxFontSize, current + step) : Math.max(minFontSize, current - step);
+            return Math.round(newSize * 10) / 10;
         }
+        const config = workspace.getConfiguration(),
+            step = config.get<number>('fontshortcuts.step'),
+            fontSize = config.get<number>('editor.fontSize'),
+            termFontSize = config.get<number>('editor.fontSize'),
+            newSize = sumFontSize(fontSize, step),
+            newTermSize = sumFontSize(termFontSize, step);
+        if (newSize !== fontSize) {
+            config.update('editor.fontSize', newSize, true);
+        }
+        if (newTermSize !== termFontSize) {
+            config.update('terminal.integrated.fontSize', newTermSize, true);
+        }
+    }
+    const increaseSizeCommand = commands.registerCommand('fontshortcuts.increaseFontSize', () => {
+        increaseDecrease(true);
     });
     const decreaseSizeCommand = commands.registerCommand('fontshortcuts.decreaseFontSize', () => {
-        const config = workspace.getConfiguration();
-        const fontSize = config.get<number>('editor.fontSize');
-        const step = config.get<number>('fontshortcuts.step');
-        const newSize = Math.max(minFontSize, fontSize - step);
-        if (newSize !== fontSize) {
-            config.update('terminal.integrated.fontSize', newSize, true);
-            return config.update('editor.fontSize', newSize, true);
-        }
+        increaseDecrease(false);
     });
     const resetSizeCommand = commands.registerCommand('fontshortcuts.resetFontSize', async () => {
         // Check whether an override for the default font size exists
-        const defaultFontSize = workspace.getConfiguration("fontshortcuts").get('defaultFontSize') as number;
-        console.log(defaultFontSize);
+        let defaultFontSize = workspace.getConfiguration("fontshortcuts").get('defaultFontSize') as number;
         if (defaultFontSize) {
             // Check whether the setting is a valid value
-            if (Number.isSafeInteger(defaultFontSize)
-                && defaultFontSize >= minFontSize
+            if (defaultFontSize >= minFontSize
                 && defaultFontSize <= maxFontSize
             ) {
+                defaultFontSize = Math.round(defaultFontSize * 10) / 10;
                 try {
                     await workspace.getConfiguration().update('terminal.integrated.fontSize', defaultFontSize, true)
                     return workspace.getConfiguration().update('editor.fontSize', defaultFontSize, true);
@@ -60,9 +64,7 @@ export function activate(context: ExtensionContext) {
         }
     });
 
-    context.subscriptions.push(increaseSizeCommand);
-    context.subscriptions.push(decreaseSizeCommand);
-    context.subscriptions.push(resetSizeCommand);
+    context.subscriptions.push(increaseSizeCommand, decreaseSizeCommand, resetSizeCommand);
 }
 
 export function deactivate() { }

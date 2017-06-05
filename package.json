@@ -2,7 +2,7 @@
   "name": "fontsize-shortcuts",
   "displayName": "FontSize Shortcuts",
   "description": "Change the font size with keyboard shortcuts",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "publisher": "peterjuras",
   "bugs": {
     "url": "https://github.com/peterjuras/vsc-fontsize-shortcuts/issues"
@@ -57,14 +57,14 @@
       "properties": {
         "fontshortcuts.defaultFontSize": {
           "type": [
-            "integer",
+            "number",
             "null"
           ],
           "description": "The default font size that is used on a font size reset",
           "default": null
         },
         "fontshortcuts.step": {
-          "type": "integer",
+          "type": "number",
           "description": "The increment or decrement step for a font size change",
           "default": 1
         }
