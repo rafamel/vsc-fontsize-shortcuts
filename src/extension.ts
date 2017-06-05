@@ -10,51 +10,38 @@ const maxFontSize = 100;
 export function activate(context: ExtensionContext) {
 
     const increaseDecrease = (increase: boolean) => {
-        const sumFontSize = (current: number, step: number) => {
-            let newSize = (increase) ? Math.min(maxFontSize, current + step) : Math.max(minFontSize, current - step);
-            return Math.round(newSize * 10) / 10;
+        const changeFontSize = (external: string) => {
+            const fontSize = config.get<number>(external),
+                newSize = Math.round(
+                        ((increase) ? 
+                            Math.min(maxFontSize, fontSize + step) : 
+                            Math.max(minFontSize, fontSize - step)
+                    ) * 10) / 10;
+            if (newSize !== fontSize) {
+                config.update(external, newSize, true);
+            }
         }
         const config = workspace.getConfiguration(),
             step = config.get<number>('fontshortcuts.step'),
-            fontSize = config.get<number>('editor.fontSize'),
-            resizeTerminal = config.get<boolean>('fontshortcuts.resizeTerminal'),
-            newSize = sumFontSize(fontSize, step);
-        if (newSize !== fontSize) {
-            config.update('editor.fontSize', newSize, true);
-        }
-        if (resizeTerminal) {
-            const termFontSize = config.get<number>('terminal.integrated.fontSize'),
-                newTermSize = sumFontSize(termFontSize, step);
-            if (newTermSize !== termFontSize) {
-                config.update('terminal.integrated.fontSize', newTermSize, true);
-            }
-        }
+            resizeTerminal = config.get<boolean>('fontshortcuts.resizeTerminal');
+        changeFontSize('editor.fontSize');
+        if (resizeTerminal) changeFontSize('terminal.integrated.fontSize');
     }
 
-    const reset = (internal: string, external: string): Promise<any> => {
+    const reset = (internal: string, external: string) => {
         // Check whether an override for the default font size exists
         let defaultFontSize = workspace.getConfiguration("fontshortcuts").get(internal) as number;
+        defaultFontSize = Math.round(defaultFontSize * 10) / 10;
         if (defaultFontSize) {
             // Check whether the setting is a valid value
-            if (defaultFontSize >= minFontSize
-                && defaultFontSize <= maxFontSize
-            ) {
-                defaultFontSize = Math.round(defaultFontSize * 10) / 10;
-                try {
-                    return Promise.resolve(workspace.getConfiguration().update(external, defaultFontSize, true));
-                } catch (err) { return Promise.reject(`Couldn't change font size: ${err}`); }
-            } else {
-                return Promise.reject(`Cannot set default font size to "${defaultFontSize}". Please set it to an integer between ${minFontSize} and ${maxFontSize} in your user settings.`);
+            if (defaultFontSize >= minFontSize && defaultFontSize <= maxFontSize) {
+                workspace.getConfiguration().update(external, defaultFontSize, true)
+                return;
             }
-        } else {
-            // No override is set, remove the fontSize setting to let VSCode set the default font size
-            try {
-                return Promise.resolve(workspace.getConfiguration().update(external, undefined, true));
-            } catch (err) {
-                return Promise.reject(`Couldn't reset font size: ${err}`);
-            }
+            window.showErrorMessage(`Cannot set default font size to "${defaultFontSize}". Please set it to an integer between ${minFontSize} and ${maxFontSize} in your user settings.`);
+            return;
         }
-
+        workspace.getConfiguration().update(external, undefined, true);
     }
 
     const increaseSizeCommand = commands.registerCommand('fontshortcuts.increaseFontSize', () => {
@@ -64,17 +51,11 @@ export function activate(context: ExtensionContext) {
         increaseDecrease(false);
     });
 
-    const resetSizeCommand = commands.registerCommand('fontshortcuts.resetFontSize', async () => {
-        let promises = [reset('defaultFontSize', 'editor.fontSize')];
-
+    const resetSizeCommand = commands.registerCommand('fontshortcuts.resetFontSize', () => {
         const resizeTerminal = workspace.getConfiguration("fontshortcuts").get('resizeTerminal') as boolean;
-        if (resizeTerminal) {
-            promises.push(reset('defaultTerminalFontSize', 'terminal.integrated.fontSize'));
-        }
 
-        return Promise
-            .all(promises)
-            .catch((err) => window.showErrorMessage(err));
+        reset('defaultFontSize', 'editor.fontSize');
+        if (resizeTerminal) reset('defaultTerminalFontSize', 'terminal.integrated.fontSize');
     });
 
     context.subscriptions.push(increaseSizeCommand, decreaseSizeCommand, resetSizeCommand);
